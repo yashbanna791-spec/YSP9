@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contact - YSP9</title>
+
+<title>Contact YSP9</title>
+
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <header class="header">
-<div class="logo">📚 YSP9</div>
+
+<div class="logo">
+📚 YSP9
+<span class="tagline">Learn • Share • Succeed</span>
+</div>
 
 <nav>
 <a href="index.html">Home</a>
@@ -21,25 +28,65 @@
 
 </header>
 
+
 <section class="hero">
-<h1>Contact Us</h1>
-<p>Need help? Contact YSP9.</p>
 
-<input type="text" placeholder="Your Name"><br><br>
-<input type="email" placeholder="Your Email"><br><br>
+<h1>📩 Contact YSP9</h1>
 
-<textarea placeholder="Write your message..."
-style="width:320px;max-width:90%;height:120px;padding:10px;border-radius:8px;"></textarea>
+<p>
+Have a suggestion, correction or problem?
+Send us a message.
+</p>
+
+
+<form id="contactForm">
+
+<input
+type="text"
+id="name"
+placeholder="Your Name"
+required
+>
 
 <br><br>
 
-<button>Send Message</button>
+
+<input
+type="email"
+id="email"
+placeholder="Your Email"
+required
+>
+
+<br><br>
+
+
+<textarea
+id="message"
+placeholder="Write your message..."
+required
+></textarea>
+
+<br><br>
+
+
+<button type="submit">
+Send Message
+</button>
+
+</form>
+
+<p id="contactStatus"></p>
 
 </section>
 
+
 <footer>
-© 2026 YSP9
+
+© 2026 YSP9 | Learn Today • Score Tomorrow
+
 </footer>
+
 
 <script src="script.js"></script>
 
