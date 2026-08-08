@@ -10,38 +10,46 @@
 <body>
 
 <header class="header">
-<div class="logo">🔐 YSP9 Admin</div>
+    <div class="logo">🔐 YSP9 Admin</div>
 
-<nav>
-<a href="index.html">Home</a>
-<a href="notes.html">Notes</a>
-<a href="about.html">About</a>
-<a href="contact.html">Contact</a>
-</nav>
-
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="notes.html">Notes</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+    </nav>
 </header>
 
 <section class="hero">
-<h1>Admin Dashboard</h1>
-<p>Upload and Manage Notes</p>
 
-<input type="text" placeholder="Subject (Physics, Chemistry...)">
-<br><br>
+    <h1>Admin Dashboard</h1>
+    <p>Upload and Manage Notes</p>
 
-<input type="text" placeholder="Chapter Name">
-<br><br>
+    <input type="text" id="subject"
+           placeholder="Subject (Physics, Chemistry, Biology...)">
 
-<input type="file">
-<br><br>
+    <br><br>
 
-<button>Upload PDF</button>
+    <input type="text" id="chapter"
+           placeholder="Chapter Name">
+
+    <br><br>
+
+    <input type="file" id="pdfFile" accept=".pdf">
+
+    <br><br>
+
+    <button id="uploadBtn">Upload PDF</button>
+
+    <p id="status"></p>
 
 </section>
 
 <footer>
-© 2026 YSP9 Admin
+    © 2026 YSP9 Admin
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 
 </body>
