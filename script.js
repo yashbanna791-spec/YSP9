@@ -23,18 +23,22 @@ if (searchBox) {
 
 
 // ===============================
-// YSP9 SUPABASE PDF UPLOAD SYSTEM
+// YSP9 SUPABASE
 // ===============================
 
 const SUPABASE_URL =
-"https://cwelkiqvnvyjgtryztgv.supabase.co";
+  "https://cwelkiqvnvyjgtryztgv.supabase.co";
 
 const SUPABASE_KEY =
-"sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
+  "sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
 
 const supabaseClient =
-supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+
+// ===============================
+// PDF UPLOAD
+// ===============================
 
 const uploadBtn = document.getElementById("uploadBtn");
 
@@ -70,6 +74,7 @@ if (uploadBtn) {
 
 
     uploadBtn.disabled = true;
+
     status.innerText =
       "⏳ PDF upload ho rahi hai...";
 
@@ -87,7 +92,11 @@ if (uploadBtn) {
       safeSubject + "/" + safeChapter + "/" + fileName;
 
 
-    const { error } =
+    // ===============================
+    // UPLOAD PDF TO STORAGE
+    // ===============================
+
+    const { error: uploadError } =
       await supabaseClient.storage
         .from("pdfs")
         .upload(filePath, file, {
@@ -96,17 +105,21 @@ if (uploadBtn) {
         });
 
 
-    if (error) {
+    if (uploadError) {
 
-      console.error(error);
+      console.error(uploadError);
 
       status.innerText =
-        "❌ Upload failed: " + error.message;
+        "❌ Upload failed: " + uploadError.message;
 
       uploadBtn.disabled = false;
       return;
     }
 
+
+    // ===============================
+    // GET PUBLIC PDF URL
+    // ===============================
 
     const { data } =
       supabaseClient.storage
@@ -114,10 +127,45 @@ if (uploadBtn) {
         .getPublicUrl(filePath);
 
 
+    const publicUrl =
+      data.publicUrl;
+
+
+    // ===============================
+    // SAVE NOTE INFORMATION
+    // ===============================
+
+    const { error: databaseError } =
+      await supabaseClient
+        .from("notes")
+        .insert({
+          subject: subject,
+          chapter: chapter,
+          pdf_path: publicUrl
+        });
+
+
+    if (databaseError) {
+
+      console.error(databaseError);
+
+      status.innerText =
+        "⚠️ PDF upload ho gayi, lekin notes database me save nahi hua: " +
+        databaseError.message;
+
+      uploadBtn.disabled = false;
+      return;
+    }
+
+
+    // ===============================
+    // SUCCESS
+    // ===============================
+
     status.innerHTML =
-      "✅ PDF successfully upload ho gayi!<br>" +
-      `<a href="${data.publicUrl}" target="_blank">
-        Open PDF
+      "✅ PDF successfully upload ho gayi!<br><br>" +
+      `<a href="${publicUrl}" target="_blank">
+        📄 Open PDF
       </a>`;
 
 
@@ -125,4 +173,4 @@ if (uploadBtn) {
 
   });
 
-                             }
+}
