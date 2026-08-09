@@ -38,74 +38,11 @@
 </section>
 
 
-<section class="subjects">
+<section class="subjects" id="chemistryNotes">
 
-
-<div class="card">
-
-<h2>Chapter 1</h2>
-
-<p>Solutions</p>
-
-<button>Coming Soon</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>Chapter 2</h2>
-
-<p>Electrochemistry</p>
-
-<button>Coming Soon</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>Chapter 3</h2>
-
-<p>Chemical Kinetics</p>
-
-<button>Coming Soon</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>Chapter 4</h2>
-
-<p>The d- and f-Block Elements</p>
-
-<button>Coming Soon</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>Chapter 5</h2>
-
-<p>Coordination Compounds</p>
-
-<button>Coming Soon</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>Chapter 6</h2>
-
-<p>Haloalkanes and Haloarenes</p>
-
-<button>Coming Soon</button>
-
-</div>
-
+<p style="text-align:center;">
+⏳ Notes load ho rahe hain...
+</p>
 
 </section>
 
@@ -117,7 +54,83 @@
 </footer>
 
 
-<script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+"https://cwelkiqvnvyjgtryztgv.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
+
+const chemistrySupabase =
+supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+async function loadChemistryNotes() {
+
+  const container =
+    document.getElementById("chemistryNotes");
+
+  const { data, error } =
+    await chemistrySupabase
+      .from("notes")
+      .select("*")
+      .ilike("subject", "chemistry")
+      .order("created_at", { ascending: true });
+
+
+  if (error) {
+
+    console.error(error);
+
+    container.innerHTML =
+      "<p style='text-align:center;'>❌ Notes load nahi ho paaye.</p>";
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    container.innerHTML =
+      "<p style='text-align:center;'>📚 Abhi Chemistry notes available nahi hain.</p>";
+
+    return;
+  }
+
+
+  container.innerHTML = "";
+
+
+  data.forEach(note => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+    card.innerHTML = `
+      <h2>🧪 ${note.chapter}</h2>
+
+      <p>Class 12 Chemistry Notes</p>
+
+      <a href="${note.pdf_path}" target="_blank">
+        <button>Open PDF</button>
+      </a>
+    `;
+
+    container.appendChild(card);
+
+  });
+
+}
+
+
+loadChemistryNotes();
+
+</script>
 
 </body>
 </html>
