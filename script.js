@@ -12,11 +12,8 @@ if (searchBox) {
     cards.forEach(card => {
       const text = card.innerText.toLowerCase();
 
-      if (text.includes(value)) {
-        card.style.display = "block";
-      } else {
-        card.style.display = "none";
-      }
+      card.style.display =
+        text.includes(value) ? "block" : "none";
     });
   });
 }
@@ -37,7 +34,7 @@ const supabaseClient =
 
 
 // ===============================
-// PDF UPLOAD
+// PDF UPLOAD SYSTEM
 // ===============================
 
 const uploadBtn = document.getElementById("uploadBtn");
@@ -58,13 +55,11 @@ if (uploadBtn) {
     const status =
       document.getElementById("status");
 
-
     if (!subject || !chapter || !file) {
       status.innerText =
         "⚠️ Subject, Chapter aur PDF select karo.";
       return;
     }
-
 
     if (file.type !== "application/pdf") {
       status.innerText =
@@ -72,12 +67,9 @@ if (uploadBtn) {
       return;
     }
 
-
     uploadBtn.disabled = true;
-
     status.innerText =
       "⏳ PDF upload ho rahi hai...";
-
 
     const safeSubject =
       subject.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -92,10 +84,7 @@ if (uploadBtn) {
       safeSubject + "/" + safeChapter + "/" + fileName;
 
 
-    // ===============================
-    // UPLOAD PDF TO STORAGE
-    // ===============================
-
+    // Upload PDF
     const { error: uploadError } =
       await supabaseClient.storage
         .from("pdfs")
@@ -104,37 +93,30 @@ if (uploadBtn) {
           upsert: false
         });
 
-
     if (uploadError) {
 
       console.error(uploadError);
 
       status.innerText =
-        "❌ Upload failed: " + uploadError.message;
+        "❌ Upload failed: " +
+        uploadError.message;
 
       uploadBtn.disabled = false;
       return;
     }
 
 
-    // ===============================
-    // GET PUBLIC PDF URL
-    // ===============================
-
+    // Get public URL
     const { data } =
       supabaseClient.storage
         .from("pdfs")
         .getPublicUrl(filePath);
 
-
     const publicUrl =
       data.publicUrl;
 
 
-    // ===============================
-    // SAVE NOTE INFORMATION
-    // ===============================
-
+    // Save information in database
     const { error: databaseError } =
       await supabaseClient
         .from("notes")
@@ -144,13 +126,12 @@ if (uploadBtn) {
           pdf_path: publicUrl
         });
 
-
     if (databaseError) {
 
       console.error(databaseError);
 
       status.innerText =
-        "⚠️ PDF upload ho gayi, lekin notes database me save nahi hua: " +
+        "⚠️ PDF upload ho gayi, lekin database me save nahi hui: " +
         databaseError.message;
 
       uploadBtn.disabled = false;
@@ -158,19 +139,152 @@ if (uploadBtn) {
     }
 
 
-    // ===============================
-    // SUCCESS
-    // ===============================
-
     status.innerHTML =
       "✅ PDF successfully upload ho gayi!<br><br>" +
       `<a href="${publicUrl}" target="_blank">
         📄 Open PDF
       </a>`;
 
-
     uploadBtn.disabled = false;
+
+  });
+}
+
+
+// ===============================
+// LOAD NOTES AUTOMATICALLY
+// ===============================
+
+async function loadNotes() {
+
+  const cards =
+    document.querySelectorAll(".card");
+
+  if (!cards.length) return;
+
+
+  // Current page ka subject identify karo
+  const heading =
+    document.querySelector("h1");
+
+  if (!heading) return;
+
+  const headingText =
+    heading.innerText.toLowerCase();
+
+  let currentSubject = "";
+
+  if (headingText.includes("biology")) {
+    currentSubject = "Biology";
+  }
+
+  else if (headingText.includes("physics")) {
+    currentSubject = "Physics";
+  }
+
+  else if (headingText.includes("chemistry")) {
+    currentSubject = "Chemistry";
+  }
+
+  if (!currentSubject) return;
+
+
+  // Database se notes lao
+  const { data: notes, error } =
+    await supabaseClient
+      .from("notes")
+      .select("*")
+      .eq("subject", currentSubject);
+
+
+  if (error) {
+
+    console.error("Notes loading error:", error);
+
+    cards.forEach(card => {
+
+      const button =
+        card.querySelector("button");
+
+      if (button) {
+        button.innerText =
+          "Notes load nahi ho rahe";
+      }
+
+    });
+
+    return;
+  }
+
+
+  // Har chapter ko check karo
+  cards.forEach(card => {
+
+    const chapterHeading =
+      card.querySelector("h2");
+
+    const button =
+      card.querySelector("button");
+
+    if (!chapterHeading || !button) return;
+
+
+    const chapterText =
+      chapterHeading.innerText.toLowerCase();
+
+
+    const match =
+      chapterText.match(/\d+/);
+
+    if (!match) return;
+
+    const chapterNumber =
+      match[0];
+
+
+    // Database me same chapter dhundo
+    const note =
+      notes.find(item => {
+
+        const dbChapter =
+          String(item.chapter).toLowerCase();
+
+        const dbMatch =
+          dbChapter.match(/\d+/);
+
+        return dbMatch &&
+               dbMatch[0] === chapterNumber;
+
+      });
+
+
+    if (note) {
+
+      button.innerText =
+        "📄 Open PDF";
+
+      button.onclick = function () {
+        window.open(
+          note.pdf_path,
+          "_blank"
+        );
+      };
+
+    }
+
+    else {
+
+      button.innerText =
+        "Coming Soon";
+
+      button.onclick = null;
+
+    }
 
   });
 
 }
+
+
+// Page load hote hi notes check karo
+loadNotes();
