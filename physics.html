@@ -1,34 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Physics Notes - YSP9</title>
+
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <header class="header">
-<h1>📘 Physics Notes</h1>
+
+<div class="logo">
+📘 YSP9
+<span class="tagline">Learn • Share • Succeed</span>
+</div>
+
+<nav>
+<a href="index.html">Home</a>
+<a href="notes.html">Notes</a>
+<a href="about.html">About</a>
+<a href="contact.html">Contact</a>
+</nav>
+
 </header>
 
-<section class="subjects">
 
-<div class="card">
-<h2>Chapter 1</h2>
-<p>Electric Charges and Fields</p>
-<a href="https://cwelkiqvnvyjgtryztgv.supabase.co/storage/v1/object/public/pdfs/physics_ch1.pdf" target="_blank">
-<button>Open PDF</button>
-</a>
-</div>
+<section class="hero">
 
-<div class="card">
-<h2>Chapter 2</h2>
-<p>Electrostatic Potential</p>
-<button>Coming Soon</button>
-</div>
+<h1>📘 Physics Notes</h1>
+
+<p>Class 12 Physics — Chapter-wise Notes</p>
 
 </section>
+
+
+<section class="subjects" id="physicsNotes">
+
+<p style="text-align:center;">
+⏳ Notes load ho rahe hain...
+</p>
+
+</section>
+
+
+<footer>
+
+© 2026 YSP9 | Learn Today • Score Tomorrow
+
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+"https://cwelkiqvnvyjgtryztgv.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
+
+const physicsSupabase =
+supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+async function loadPhysicsNotes() {
+
+  const container =
+    document.getElementById("physicsNotes");
+
+  const { data, error } =
+    await physicsSupabase
+      .from("notes")
+      .select("*")
+      .ilike("subject", "physics")
+      .order("created_at", { ascending: true });
+
+
+  if (error) {
+
+    console.error(error);
+
+    container.innerHTML =
+      "<p style='text-align:center;'>❌ Notes load nahi ho paaye.</p>";
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    container.innerHTML =
+      "<p style='text-align:center;'>📚 Abhi Physics notes available nahi hain.</p>";
+
+    return;
+  }
+
+
+  container.innerHTML = "";
+
+
+  data.forEach(note => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+    card.innerHTML = `
+      <h2>📘 ${note.chapter}</h2>
+
+      <p>Class 12 Physics Notes</p>
+
+      <a href="${note.pdf_path}" target="_blank">
+        <button>Open PDF</button>
+      </a>
+    `;
+
+    container.appendChild(card);
+
+  });
+
+}
+
+
+loadPhysicsNotes();
+
+</script>
 
 </body>
 </html>
