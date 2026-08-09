@@ -38,52 +38,11 @@
 </section>
 
 
-<section class="subjects">
+<section class="subjects" id="englishNotes">
 
-
-<div class="card">
-
-<h2>📕 Flamingo</h2>
-
-<p>Chapter-wise Notes</p>
-
-<button>Coming Soon</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>📗 Vistas</h2>
-
-<p>Chapter-wise Notes</p>
-
-<button>Coming Soon</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>📝 Grammar</h2>
-
-<p>Important Grammar Notes</p>
-
-<button>Coming Soon</button>
-
-</div>
-
-
-<div class="card">
-
-<h2>⭐ Important Questions</h2>
-
-<p>Exam-oriented questions</p>
-
-<button>Coming Soon</button>
-
-</div>
-
+<p style="text-align:center;">
+⏳ Notes load ho rahe hain...
+</p>
 
 </section>
 
@@ -95,7 +54,83 @@
 </footer>
 
 
-<script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+"https://cwelkiqvnvyjgtryztgv.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
+
+const englishSupabase =
+supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+async function loadEnglishNotes() {
+
+  const container =
+    document.getElementById("englishNotes");
+
+  const { data, error } =
+    await englishSupabase
+      .from("notes")
+      .select("*")
+      .ilike("subject", "english")
+      .order("created_at", { ascending: true });
+
+
+  if (error) {
+
+    console.error(error);
+
+    container.innerHTML =
+      "<p style='text-align:center;'>❌ Notes load nahi ho paaye.</p>";
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    container.innerHTML =
+      "<p style='text-align:center;'>📚 Abhi English notes available nahi hain.</p>";
+
+    return;
+  }
+
+
+  container.innerHTML = "";
+
+
+  data.forEach(note => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+    card.innerHTML = `
+      <h2>📖 ${note.chapter}</h2>
+
+      <p>Class 12 English Study Material</p>
+
+      <a href="${note.pdf_path}" target="_blank">
+        <button>Open PDF</button>
+      </a>
+    `;
+
+    container.appendChild(card);
+
+  });
+
+}
+
+
+loadEnglishNotes();
+
+</script>
 
 </body>
 </html>
