@@ -46,7 +46,7 @@ placeholder="🔍 Search Notes..."
 <div class="stats">
 
 <div class="box">
-<h2>Available</h2>
+<h2 id="totalNotes">0</h2>
 <p>Notes</p>
 </div>
 
@@ -62,7 +62,6 @@ placeholder="🔍 Search Notes..."
 
 </div>
 
-
 <br>
 
 <a href="notes.html">
@@ -72,58 +71,24 @@ placeholder="🔍 Search Notes..."
 </section>
 
 
-
 <section class="latest">
 
 <h2>🔥 Latest Notes</h2>
 
+<div id="latestNotes">
 
-<div class="card">
-
-<h3>📘 Physics</h3>
-
-<p>Chapter 1 - Electric Charges and Fields</p>
-
-<a href="physics.html">
-<button>Open Notes</button>
-</a>
-
-</div>
-
-
-<div class="card">
-
-<h3>🧪 Chemistry</h3>
-
-<p>Class 12 Chemistry Notes</p>
-
-<a href="chemistry.html">
-<button>Open Notes</button>
-</a>
-
-</div>
-
-
-<div class="card">
-
-<h3>🌿 Biology</h3>
-
-<p>Class 12 Biology Notes</p>
-
-<a href="biology.html">
-<button>Open Notes</button>
-</a>
+<p style="text-align:center;">
+⏳ Latest notes load ho rahe hain...
+</p>
 
 </div>
 
 </section>
 
 
-
 <section class="subjects">
 
 <h2>📚 Subjects</h2>
-
 
 <div class="card">
 
@@ -179,11 +144,9 @@ placeholder="🔍 Search Notes..."
 </section>
 
 
-
 <section class="featured">
 
 <h2>⭐ Featured Notes</h2>
-
 
 <div class="card">
 
@@ -226,7 +189,6 @@ placeholder="🔍 Search Notes..."
 </section>
 
 
-
 <section class="important">
 
 <h2>⭐ Most Important Questions</h2>
@@ -240,13 +202,118 @@ placeholder="🔍 Search Notes..."
 </section>
 
 
-
 <footer>
 
 © 2026 YSP9 | Learn Today • Score Tomorrow
 
 </footer>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+"https://cwelkiqvnvyjgtryztgv.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
+
+const homeSupabase =
+supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+async function loadHomeNotes() {
+
+  const latestContainer =
+    document.getElementById("latestNotes");
+
+  const totalNotes =
+    document.getElementById("totalNotes");
+
+
+  const { data, error } =
+    await homeSupabase
+      .from("notes")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+
+  if (error) {
+
+    console.error(error);
+
+    latestContainer.innerHTML =
+      "<p style='text-align:center;'>❌ Notes load nahi ho paaye.</p>";
+
+    return;
+  }
+
+
+  totalNotes.innerText =
+    data ? data.length : 0;
+
+
+  if (!data || data.length === 0) {
+
+    latestContainer.innerHTML =
+      "<p style='text-align:center;'>📚 Abhi notes available nahi hain.</p>";
+
+    return;
+  }
+
+
+  latestContainer.innerHTML = "";
+
+
+  data.slice(0, 5).forEach(note => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+
+    let icon = "📚";
+
+    if (note.subject.toLowerCase() === "physics") {
+      icon = "📘";
+    }
+
+    if (note.subject.toLowerCase() === "chemistry") {
+      icon = "🧪";
+    }
+
+    if (note.subject.toLowerCase() === "biology") {
+      icon = "🌿";
+    }
+
+    if (note.subject.toLowerCase() === "english") {
+      icon = "📖";
+    }
+
+
+    card.innerHTML = `
+      <h3>${icon} ${note.subject}</h3>
+
+      <p>${note.chapter}</p>
+
+      <a href="${note.pdf_path}" target="_blank">
+        <button>📄 Open PDF</button>
+      </a>
+    `;
+
+
+    latestContainer.appendChild(card);
+
+  });
+
+}
+
+
+loadHomeNotes();
+
+</script>
 
 <script src="script.js"></script>
 
