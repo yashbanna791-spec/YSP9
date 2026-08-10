@@ -78,7 +78,8 @@ async function loadEnglishNotes() {
       .from("notes")
       .select("*")
       .ilike("subject", "english")
-      .order("created_at", { ascending: true });
+.eq("category", "notes")
+.order("created_at", { ascending: true });
 
 
   if (error) {
