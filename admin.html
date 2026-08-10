@@ -3,13 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>YSP9 Admin Panel</title>
+
 <link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
 <header class="header">
+
     <div class="logo">🔐 YSP9 Admin</div>
 
     <nav>
@@ -18,39 +23,224 @@
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
     </nav>
+
 </header>
+
 
 <section class="hero">
 
     <h1>Admin Dashboard</h1>
+
     <p>Upload and Manage Notes</p>
 
-    <input type="text" id="subject"
-           placeholder="Subject (Physics, Chemistry, Biology...)">
+    <input
+        type="text"
+        id="subject"
+        placeholder="Subject (Physics, Chemistry, Biology...)"
+    >
 
     <br><br>
 
-    <input type="text" id="chapter"
-           placeholder="Chapter Name">
+    <input
+        type="text"
+        id="chapter"
+        placeholder="Chapter Name"
+    >
 
     <br><br>
 
-    <input type="file" id="pdfFile" accept=".pdf">
+    <input
+        type="file"
+        id="pdfFile"
+        accept="application/pdf,.pdf"
+    >
 
     <br><br>
 
-    <button id="uploadBtn">Upload PDF</button>
+    <button id="uploadBtn">
+        Upload PDF
+    </button>
 
     <p id="status"></p>
 
 </section>
 
+
 <footer>
     © 2026 YSP9 Admin
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+
+<script>
+
+const SUPABASE_URL =
+"https://cwelkiqvnvyjgtryztgv.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
+
+const adminSupabase =
+supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+document
+.getElementById("uploadBtn")
+.addEventListener("click", async function () {
+
+    const button =
+        document.getElementById("uploadBtn");
+
+    const status =
+        document.getElementById("status");
+
+    const subject =
+        document.getElementById("subject")
+        .value
+        .trim();
+
+    const chapter =
+        document.getElementById("chapter")
+        .value
+        .trim();
+
+    const file =
+        document.getElementById("pdfFile")
+        .files[0];
+
+
+    if (!subject || !chapter || !file) {
+
+        status.innerText =
+            "⚠️ Subject, Chapter aur PDF select karo.";
+
+        return;
+    }
+
+
+    if (file.type !== "application/pdf") {
+
+        status.innerText =
+            "❌ Sirf PDF file upload karo.";
+
+        return;
+    }
+
+
+    button.disabled = true;
+
+    status.innerText =
+        "⏳ PDF upload ho rahi hai...";
+
+
+    const safeSubject =
+        subject
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-");
+
+
+    const safeChapter =
+        chapter
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-");
+
+
+    const fileName =
+        Date.now() +
+        "-" +
+        file.name.replace(/\s+/g, "-");
+
+
+    const filePath =
+        safeSubject +
+        "/" +
+        safeChapter +
+        "/" +
+        fileName;
+
+
+    // Upload PDF
+    const { error: uploadError } =
+        await adminSupabase
+        .storage
+        .from("pdfs")
+        .upload(
+            filePath,
+            file,
+            {
+                contentType: "application/pdf",
+                upsert: false
+            }
+        );
+
+
+    if (uploadError) {
+
+        console.error(uploadError);
+
+        status.innerText =
+            "❌ Upload failed: " +
+            uploadError.message;
+
+        button.disabled = false;
+
+        return;
+    }
+
+
+    // Public URL
+    const { data: urlData } =
+        adminSupabase
+        .storage
+        .from("pdfs")
+        .getPublicUrl(filePath);
+
+
+    const publicUrl =
+        urlData.publicUrl;
+
+
+    // Database me save
+    const { error: databaseError } =
+        await adminSupabase
+        .from("notes")
+        .insert({
+            subject: subject,
+            chapter: chapter,
+            pdf_path: publicUrl
+        });
+
+
+    if (databaseError) {
+
+        console.error(databaseError);
+
+        status.innerText =
+            "⚠️ PDF upload ho gayi, lekin database me save nahi hui: " +
+            databaseError.message;
+
+        button.disabled = false;
+
+        return;
+    }
+
+
+    status.innerHTML =
+        "✅ PDF successfully upload ho gayi!<br><br>" +
+        "<a href='" +
+        publicUrl +
+        "' target='_blank'>" +
+        "📄 Open PDF" +
+        "</a>";
+
+
+    button.disabled = false;
+
+});
+
+</script>
 
 </body>
 </html>
