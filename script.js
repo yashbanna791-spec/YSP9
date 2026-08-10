@@ -13,100 +13,6 @@ const supabaseClient =
 
 
 // ===============================
-// YSP9 SEARCH SYSTEM
-// ===============================
-
-const searchBox =
-  document.getElementById("searchBox");
-
-if (searchBox) {
-
-  searchBox.addEventListener("input", async function () {
-
-    const value =
-      this.value.trim().toLowerCase();
-
-    const latestContainer =
-      document.getElementById("latestNotes");
-
-    if (!latestContainer) return;
-
-
-    // Search empty hai to latest notes dikhao
-    if (!value) {
-
-      loadLatestNotes();
-
-      return;
-    }
-
-
-    latestContainer.innerHTML =
-      "<p style='text-align:center;'>🔎 Searching...</p>";
-
-
-    const { data, error } =
-      await supabaseClient
-        .from("notes")
-        .select("*")
-        .or(
-          `subject.ilike.%${value}%,chapter.ilike.%${value}%`
-        )
-        .order("created_at", {
-          ascending: false
-        });
-
-
-    if (error) {
-
-      console.error(error);
-
-      latestContainer.innerHTML =
-        "<p style='text-align:center;'>❌ Search failed.</p>";
-
-      return;
-    }
-
-
-    if (!data || data.length === 0) {
-
-      latestContainer.innerHTML =
-        "<p style='text-align:center;'>📚 Koi notes nahi mile.</p>";
-
-      return;
-    }
-
-
-    showNotes(data);
-
-  });
-
-}
-
-
-// ===============================
-// NOTE ICON
-// ===============================
-
-function getSubjectIcon(subject) {
-
-  const value =
-    subject.toLowerCase();
-
-  if (value === "physics") return "📘";
-
-  if (value === "chemistry") return "🧪";
-
-  if (value === "biology") return "🌿";
-
-  if (value === "english") return "📖";
-
-  return "📚";
-
-}
-
-
-// ===============================
 // SHOW NOTES
 // ===============================
 
@@ -117,8 +23,15 @@ function showNotes(notes) {
 
   if (!container) return;
 
-
   container.innerHTML = "";
+
+  if (!notes || notes.length === 0) {
+
+    container.innerHTML =
+      "<p style='text-align:center;'>📚 Koi notes nahi mile.</p>";
+
+    return;
+  }
 
 
   notes.forEach(note => {
@@ -129,20 +42,25 @@ function showNotes(notes) {
     card.className = "card";
 
 
-    const icon =
-      getSubjectIcon(note.subject);
+    let icon = "📚";
+
+    const subject =
+      String(note.subject).toLowerCase();
+
+    if (subject === "physics") icon = "📘";
+    if (subject === "chemistry") icon = "🧪";
+    if (subject === "biology") icon = "🌿";
+    if (subject === "english") icon = "📖";
 
 
     card.innerHTML = `
       <h3>${icon} ${note.subject}</h3>
-
       <p>${note.chapter}</p>
 
       <a href="${note.pdf_path}" target="_blank">
         <button>📄 Open PDF</button>
       </a>
     `;
-
 
     container.appendChild(card);
 
@@ -152,16 +70,10 @@ function showNotes(notes) {
 
 
 // ===============================
-// LOAD LATEST NOTES
+// LOAD ALL NOTES
 // ===============================
 
-async function loadLatestNotes() {
-
-  const container =
-    document.getElementById("latestNotes");
-
-  if (!container) return;
-
+async function getAllNotes() {
 
   const { data, error } =
     await supabaseClient
@@ -174,321 +86,120 @@ async function loadLatestNotes() {
 
   if (error) {
 
-    console.error(error);
+    console.error("SUPABASE ERROR:", error);
 
-    container.innerHTML =
-      "<p style='text-align:center;'>❌ Notes load nahi ho paaye.</p>";
+    const container =
+      document.getElementById("latestNotes");
 
-    return;
-  }
+    if (container) {
 
-
-  if (!data || data.length === 0) {
-
-    container.innerHTML =
-      "<p style='text-align:center;'>📚 Abhi notes available nahi hain.</p>";
-
-    return;
-  }
-
-
-  showNotes(
-    data.slice(0, 5)
-  );
-
-}
-
-
-// ===============================
-// PDF UPLOAD SYSTEM
-// ===============================
-
-const uploadBtn =
-  document.getElementById("uploadBtn");
-
-
-if (uploadBtn) {
-
-  uploadBtn.addEventListener(
-    "click",
-    async function () {
-
-      const subject =
-        document
-          .getElementById("subject")
-          .value
-          .trim();
-
-
-      const chapter =
-        document
-          .getElementById("chapter")
-          .value
-          .trim();
-
-
-      const file =
-        document
-          .getElementById("pdfFile")
-          .files[0];
-
-
-      const status =
-        document.getElementById("status");
-
-
-      if (!subject || !chapter || !file) {
-
-        status.innerText =
-          "⚠️ Subject, Chapter aur PDF select karo.";
-
-        return;
-      }
-
-
-      if (file.type !== "application/pdf") {
-
-        status.innerText =
-          "❌ Sirf PDF file upload karo.";
-
-        return;
-      }
-
-
-      uploadBtn.disabled = true;
-
-      status.innerText =
-        "⏳ PDF upload ho rahi hai...";
-
-
-      const safeSubject =
-        subject
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-");
-
-
-      const safeChapter =
-        chapter
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-");
-
-
-      const fileName =
-        Date.now() +
-        "-" +
-        file.name.replace(/\s+/g, "-");
-
-
-      const filePath =
-        safeSubject +
-        "/" +
-        safeChapter +
-        "/" +
-        fileName;
-
-
-      // Upload PDF
-      const { error: uploadError } =
-        await supabaseClient
-          .storage
-          .from("pdfs")
-          .upload(
-            filePath,
-            file,
-            {
-              contentType:
-                "application/pdf",
-
-              upsert: false
-            }
-          );
-
-
-      if (uploadError) {
-
-        console.error(uploadError);
-
-        status.innerText =
-          "❌ Upload failed: " +
-          uploadError.message;
-
-        uploadBtn.disabled = false;
-
-        return;
-      }
-
-
-      // Public URL
-      const { data } =
-        supabaseClient
-          .storage
-          .from("pdfs")
-          .getPublicUrl(filePath);
-
-
-      const publicUrl =
-        data.publicUrl;
-
-
-      // Database me save
-      const { error: databaseError } =
-        await supabaseClient
-          .from("notes")
-          .insert({
-            subject: subject,
-            chapter: chapter,
-            pdf_path: publicUrl
-          });
-
-
-      if (databaseError) {
-
-        console.error(databaseError);
-
-        status.innerText =
-          "⚠️ PDF upload ho gayi, lekin database me save nahi hui: " +
-          databaseError.message;
-
-        uploadBtn.disabled = false;
-
-        return;
-      }
-
-
-      status.innerHTML =
-        "✅ PDF successfully upload ho gayi!<br><br>" +
-        `<a href="${publicUrl}" target="_blank">
-          📄 Open PDF
-        </a>`;
-
-
-      uploadBtn.disabled = false;
+      container.innerHTML =
+        `<p style="text-align:center;">
+        ❌ Notes load nahi hue.<br>
+        ${error.message}
+        </p>`;
 
     }
-  );
+
+    return [];
+
+  }
+
+
+  return data || [];
 
 }
 
 
 // ===============================
-// SUBJECT PAGE NOTES
+// HOME PAGE
 // ===============================
 
-async function loadSubjectNotes() {
-
-  const heading =
-    document.querySelector("h1");
-
-  if (!heading) return;
-
-
-  const headingText =
-    heading.innerText.toLowerCase();
-
-
-  let currentSubject = "";
-
-
-  if (headingText.includes("biology")) {
-    currentSubject = "Biology";
-  }
-
-  else if (headingText.includes("physics")) {
-    currentSubject = "Physics";
-  }
-
-  else if (headingText.includes("chemistry")) {
-    currentSubject = "Chemistry";
-  }
-
-  else if (headingText.includes("english")) {
-    currentSubject = "English";
-  }
-
-
-  if (!currentSubject) return;
-
+async function setupHomePage() {
 
   const container =
-    document.querySelector(".subjects");
-
+    document.getElementById("latestNotes");
 
   if (!container) return;
 
 
-  // Sirf un pages par jahan dynamic notes container hai
-  const dynamicContainer =
-    document.getElementById(
-      currentSubject.toLowerCase() + "Notes"
-    );
+  const notes =
+    await getAllNotes();
 
 
-  if (!dynamicContainer) return;
+  // Total notes
+  const total =
+    document.getElementById("totalNotes");
 
-
-  const { data, error } =
-    await supabaseClient
-      .from("notes")
-      .select("*")
-      .ilike("subject", currentSubject)
-      .order("created_at", {
-        ascending: true
-      });
-
-
-  if (error) {
-
-    console.error(
-      "Notes loading error:",
-      error
-    );
-
-    return;
+  if (total) {
+    total.innerText = notes.length;
   }
 
 
-  if (!data || data.length === 0) return;
+  // Latest 5
+  showNotes(
+    notes.slice(0, 5)
+  );
 
 
-  dynamicContainer.innerHTML = "";
+  // Search
+  const searchBox =
+    document.getElementById("searchBox");
 
 
-  data.forEach(note => {
+  if (searchBox) {
 
-    const card =
-      document.createElement("div");
+    searchBox.addEventListener(
+      "input",
+      function () {
 
-    card.className = "card";
-
-
-    const icon =
-      getSubjectIcon(
-        note.subject
-      );
+        const value =
+          this.value
+            .trim()
+            .toLowerCase();
 
 
-    card.innerHTML = `
-      <h2>${icon} ${note.chapter}</h2>
+        if (!value) {
 
-      <p>Class 12 ${note.subject} Notes</p>
+          showNotes(
+            notes.slice(0, 5)
+          );
 
-      <a href="${note.pdf_path}" target="_blank">
-        <button>📄 Open PDF</button>
-      </a>
-    `;
+          return;
+        }
 
 
-    dynamicContainer.appendChild(card);
+        const results =
+          notes.filter(note => {
 
-  });
+            const subject =
+              String(note.subject)
+                .toLowerCase();
+
+            const chapter =
+              String(note.chapter)
+                .toLowerCase();
+
+            return (
+              subject.includes(value) ||
+              chapter.includes(value)
+            );
+
+          });
+
+
+        showNotes(results);
+
+      }
+    );
+
+  }
 
 }
 
 
 // ===============================
-// PAGE LOAD
+// START
 // ===============================
 
-loadLatestNotes();
-
-loadSubjectNotes();  
+setupHomePage();
