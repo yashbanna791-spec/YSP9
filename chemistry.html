@@ -74,12 +74,12 @@ async function loadChemistryNotes() {
     document.getElementById("chemistryNotes");
 
   const { data, error } =
-    await chemistrySupabase
-      .from("notes")
-      .select("*")
-      .ilike("subject", "chemistry")
-      .order("created_at", { ascending: true });
-
+  await chemistrySupabase
+    .from("notes")
+    .select("*")
+    .ilike("subject", "chemistry")
+    .eq("category", "notes")
+    .order("created_at", { ascending: true });
 
   if (error) {
 
