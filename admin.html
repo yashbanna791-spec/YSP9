@@ -29,11 +29,8 @@ href="style.css">
 <nav>
 
 <a href="index.html">Home</a>
-
 <a href="notes.html">Notes</a>
-
 <a href="about.html">About</a>
-
 <a href="contact.html">Contact</a>
 
 </nav>
@@ -48,19 +45,14 @@ href="style.css">
 <p>Upload and Manage Notes</p>
 
 
-<!-- SUBJECT -->
-
 <input
 type="text"
 id="subject"
 placeholder="Subject (Physics, Chemistry, Biology...)"
 >
 
-
 <br><br>
 
-
-<!-- CATEGORY -->
 
 <select id="category">
 
@@ -74,11 +66,8 @@ placeholder="Subject (Physics, Chemistry, Biology...)"
 
 </select>
 
-
 <br><br>
 
-
-<!-- CHAPTER -->
 
 <input
 type="text"
@@ -86,11 +75,8 @@ id="chapter"
 placeholder="Chapter Name"
 >
 
-
 <br><br>
 
-
-<!-- PDF -->
 
 <input
 type="file"
@@ -98,20 +84,38 @@ id="pdfFile"
 accept="application/pdf,.pdf"
 >
 
-
 <br><br>
 
 
 <button id="uploadBtn">
-
 Upload PDF
-
 </button>
 
 
 <p id="status"></p>
 
 </section>
+
+
+
+<!-- =============================== -->
+<!-- MANAGE UPLOADED PDFs -->
+<!-- =============================== -->
+
+<section class="subjects">
+
+<h2>🗂️ Manage Uploaded PDFs</h2>
+
+<div id="uploadedFiles">
+
+<p style="text-align:center;">
+⏳ Uploaded PDFs load ho rahe hain...
+</p>
+
+</div>
+
+</section>
+
 
 
 <footer>
@@ -140,20 +144,21 @@ SUPABASE_KEY
 
 
 
+// ===============================
+// UPLOAD PDF
+// ===============================
+
 document
 .getElementById("uploadBtn")
 .addEventListener(
 "click",
 async function () {
 
-
 const button =
 document.getElementById("uploadBtn");
 
-
 const status =
 document.getElementById("status");
-
 
 const subject =
 document
@@ -161,12 +166,10 @@ document
 .value
 .trim();
 
-
 const category =
 document
 .getElementById("category")
 .value;
-
 
 const chapter =
 document
@@ -174,12 +177,10 @@ document
 .value
 .trim();
 
-
 const file =
 document
 .getElementById("pdfFile")
 .files[0];
-
 
 
 if (!subject ||
@@ -195,7 +196,6 @@ return;
 }
 
 
-
 if (file.type !== "application/pdf") {
 
 status.innerText =
@@ -206,12 +206,10 @@ return;
 }
 
 
-
 button.disabled = true;
 
 status.innerText =
 "⏳ PDF upload ho rahi hai...";
-
 
 
 const safeSubject =
@@ -248,9 +246,7 @@ fileName;
 
 
 
-// ===============================
-// UPLOAD PDF
-// ===============================
+// Upload PDF
 
 const { error: uploadError } =
 await adminSupabase
@@ -269,7 +265,6 @@ false
 );
 
 
-
 if (uploadError) {
 
 console.error(uploadError);
@@ -286,9 +281,7 @@ return;
 
 
 
-// ===============================
-// PUBLIC URL
-// ===============================
+// Public URL
 
 const { data: urlData } =
 adminSupabase
@@ -302,9 +295,7 @@ urlData.publicUrl;
 
 
 
-// ===============================
-// SAVE DATABASE
-// ===============================
+// Database
 
 const { error: databaseError } =
 await adminSupabase
@@ -326,7 +317,6 @@ publicUrl
 });
 
 
-
 if (databaseError) {
 
 console.error(databaseError);
@@ -342,13 +332,7 @@ return;
 }
 
 
-
-// ===============================
-// SUCCESS
-// ===============================
-
 status.innerHTML =
-
 "✅ PDF successfully upload ho gayi!<br><br>" +
 
 "<b>Subject:</b> " +
@@ -371,11 +355,254 @@ publicUrl +
 "</a>";
 
 
-
 button.disabled = false;
 
 
+// List refresh
+
+loadUploadedFiles();
+
 });
+
+
+
+// ===============================
+// LOAD UPLOADED PDFs
+// ===============================
+
+async function loadUploadedFiles() {
+
+const container =
+document.getElementById(
+"uploadedFiles"
+);
+
+
+const { data, error } =
+await adminSupabase
+.from("notes")
+.select("*")
+.order("created_at", {
+ascending: false
+});
+
+
+if (error) {
+
+console.error(error);
+
+container.innerHTML =
+"<p style='text-align:center;'>❌ Files load nahi hui.</p>";
+
+return;
+
+}
+
+
+if (!data ||
+data.length === 0) {
+
+container.innerHTML =
+"<p style='text-align:center;'>📚 Abhi koi PDF upload nahi hai.</p>";
+
+return;
+
+}
+
+
+container.innerHTML = "";
+
+
+data.forEach(note => {
+
+const card =
+document.createElement("div");
+
+card.className =
+"card";
+
+
+let icon =
+"📚";
+
+
+if (
+String(note.category)
+.toLowerCase()
+=== "important"
+) {
+
+icon = "⭐";
+
+}
+
+
+card.innerHTML = `
+
+<h3>
+${icon} ${note.subject}
+</h3>
+
+<p>
+${note.chapter}
+</p>
+
+<p>
+Category: ${note.category}
+</p>
+
+<a
+href="${note.pdf_path}"
+target="_blank">
+
+<button>
+📄 Open PDF
+</button>
+
+</a>
+
+<br><br>
+
+<button
+onclick="deletePDF('${note.id}', '${note.pdf_path}')">
+
+🗑️ Delete PDF
+
+</button>
+
+`;
+
+
+container.appendChild(card);
+
+});
+
+}
+
+
+
+// ===============================
+// DELETE PDF
+// ===============================
+
+async function deletePDF(id, publicUrl) {
+
+
+const confirmDelete =
+confirm(
+"⚠️ Kya tum ye PDF permanently delete karna chahte ho?"
+);
+
+
+if (!confirmDelete) {
+
+return;
+
+}
+
+
+const status =
+document.getElementById("status");
+
+
+status.innerText =
+"⏳ PDF delete ho rahi hai...";
+
+
+
+// File path URL se nikalo
+
+const marker =
+"/storage/v1/object/public/pdfs/";
+
+
+const position =
+publicUrl.indexOf(marker);
+
+
+if (position === -1) {
+
+status.innerText =
+"❌ PDF path identify nahi ho paaya.";
+
+return;
+
+}
+
+
+const filePath =
+decodeURIComponent(
+publicUrl.substring(
+position + marker.length
+)
+);
+
+
+
+// Storage se delete
+
+const { error: storageError } =
+await adminSupabase
+.storage
+.from("pdfs")
+.remove([
+filePath
+]);
+
+
+if (storageError) {
+
+console.error(storageError);
+
+status.innerText =
+"❌ Storage delete failed: " +
+storageError.message;
+
+return;
+
+}
+
+
+
+// Database se delete
+
+const { error: databaseError } =
+await adminSupabase
+.from("notes")
+.delete()
+.eq("id", id);
+
+
+if (databaseError) {
+
+console.error(databaseError);
+
+status.innerText =
+"⚠️ PDF Storage se delete ho gayi, lekin database record delete nahi hua: " +
+databaseError.message;
+
+return;
+
+}
+
+
+status.innerText =
+"✅ PDF successfully delete ho gayi!";
+
+
+// List refresh
+
+loadUploadedFiles();
+
+}
+
+
+
+// ===============================
+// START
+// ===============================
+
+loadUploadedFiles();
 
 </script>
 
