@@ -55,6 +55,7 @@ function showNotes(notes) {
 
     card.innerHTML = `
       <h3>${icon} ${note.subject}</h3>
+
       <p>${note.chapter}</p>
 
       <a href="${note.pdf_path}" target="_blank">
@@ -70,7 +71,7 @@ function showNotes(notes) {
 
 
 // ===============================
-// LOAD ALL NOTES
+// LOAD NOTES
 // ===============================
 
 async function getAllNotes() {
@@ -79,6 +80,7 @@ async function getAllNotes() {
     await supabaseClient
       .from("notes")
       .select("*")
+      .eq("category", "notes")
       .order("created_at", {
         ascending: false
       });
@@ -86,7 +88,10 @@ async function getAllNotes() {
 
   if (error) {
 
-    console.error("SUPABASE ERROR:", error);
+    console.error(
+      "SUPABASE ERROR:",
+      error
+    );
 
     const container =
       document.getElementById("latestNotes");
@@ -127,22 +132,28 @@ async function setupHomePage() {
     await getAllNotes();
 
 
-  // Total notes
+  // TOTAL NOTES
+
   const total =
     document.getElementById("totalNotes");
 
   if (total) {
-    total.innerText = notes.length;
+
+    total.innerText =
+      notes.length;
+
   }
 
 
-  // Latest 5
+  // LATEST 5
+
   showNotes(
     notes.slice(0, 5)
   );
 
 
-  // Search
+  // SEARCH
+
   const searchBox =
     document.getElementById("searchBox");
 
@@ -152,6 +163,7 @@ async function setupHomePage() {
     searchBox.addEventListener(
       "input",
       function () {
+
 
         const value =
           this.value
@@ -166,19 +178,23 @@ async function setupHomePage() {
           );
 
           return;
+
         }
 
 
         const results =
           notes.filter(note => {
 
+
             const subject =
               String(note.subject)
                 .toLowerCase();
 
+
             const chapter =
               String(note.chapter)
                 .toLowerCase();
+
 
             return (
               subject.includes(value) ||
@@ -188,7 +204,9 @@ async function setupHomePage() {
           });
 
 
-        showNotes(results);
+        showNotes(
+          results
+        );
 
       }
     );
@@ -199,7 +217,120 @@ async function setupHomePage() {
 
 
 // ===============================
+// CONTACT FORM
+// ===============================
+
+async function setupContactForm() {
+
+  const form =
+    document.getElementById(
+      "contactForm"
+    );
+
+  if (!form) return;
+
+
+  const status =
+    document.getElementById(
+      "contactStatus"
+    );
+
+
+  form.addEventListener(
+    "submit",
+    async function (event) {
+
+
+      event.preventDefault();
+
+
+      const name =
+        document
+          .getElementById("name")
+          .value
+          .trim();
+
+
+      const email =
+        document
+          .getElementById("email")
+          .value
+          .trim();
+
+
+      const message =
+        document
+          .getElementById("message")
+          .value
+          .trim();
+
+
+      if (
+        !name ||
+        !email ||
+        !message
+      ) {
+
+        status.innerText =
+          "⚠️ Please sabhi fields bharo.";
+
+        return;
+
+      }
+
+
+      status.innerText =
+        "⏳ Message send ho raha hai...";
+
+
+      const {
+        error
+      } =
+        await supabaseClient
+          .from("contact_messages")
+          .insert({
+
+            name: name,
+
+            email: email,
+
+            message: message
+
+          });
+
+
+      if (error) {
+
+        console.error(
+          "CONTACT ERROR:",
+          error
+        );
+
+
+        status.innerText =
+          "❌ Message send nahi hua. Please dobara try karo.";
+
+        return;
+
+      }
+
+
+      status.innerText =
+        "✅ Message successfully send ho gaya!";
+
+
+      form.reset();
+
+    }
+  );
+
+}
+
+
+// ===============================
 // START
 // ===============================
 
 setupHomePage();
+
+setupContactForm();
