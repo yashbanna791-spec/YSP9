@@ -80,15 +80,15 @@ async function loadChemistryQuestions() {
     );
 
 
-  const { data, error } =
-    await chemistrySupabase
-      .from("notes")
-      .select("*")
-      .ilike("subject", "Chemistry")
-      .ilike("chapter", "%Important Questions%")
-      .order("created_at", {
-        ascending: false
-      });
+const { data, error } =
+  await chemistrySupabase
+    .from("notes")
+    .select("*")
+    .ilike("subject", "Chemistry")
+    .eq("category", "important")
+    .order("created_at", {
+      ascending: false
+    });  
 
 
   if (error) {
