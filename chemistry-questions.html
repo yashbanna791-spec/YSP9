@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Chemistry Important Questions - YSP9</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</head>
+
+<body>
+
+<header class="header">
+
+<div class="logo">
+🧪 YSP9
+<span class="tagline">Learn • Share • Succeed</span>
+</div>
+
+<nav>
+<a href="index.html">Home</a>
+<a href="notes.html">Notes</a>
+<a href="about.html">About</a>
+<a href="contact.html">Contact</a>
+</nav>
+
+</header>
+
+
+<section class="hero">
+
+<h1>🧪 Chemistry Important Questions</h1>
+
+<p>RBSE Class 12 — Chapter 1 to 3</p>
+
+</section>
+
+
+<section class="subjects" id="chemistryQuestions">
+
+<p style="text-align:center;">
+⏳ Important Questions load ho rahe hain...
+</p>
+
+</section>
+
+
+<footer>
+
+© 2026 YSP9 | Learn Today • Score Tomorrow
+
+</footer>
+
+
+<script>
+
+const SUPABASE_URL =
+"https://cwelkiqvnvyjgtryztgv.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
+
+const chemistrySupabase =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+async function loadChemistryQuestions() {
+
+  const container =
+    document.getElementById(
+      "chemistryQuestions"
+    );
+
+
+  const { data, error } =
+    await chemistrySupabase
+      .from("notes")
+      .select("*")
+      .ilike("subject", "Chemistry")
+      .ilike("chapter", "%Important Questions%")
+      .order("created_at", {
+        ascending: false
+      });
+
+
+  if (error) {
+
+    console.error(error);
+
+    container.innerHTML =
+      "<p style='text-align:center;'>❌ Questions load nahi ho paaye.</p>";
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    container.innerHTML =
+      "<p style='text-align:center;'>📚 Chemistry Important Questions abhi available nahi hain.</p>";
+
+    return;
+  }
+
+
+  container.innerHTML = "";
+
+
+  data.forEach(note => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+
+    card.innerHTML = `
+      <h2>⭐ ${note.chapter}</h2>
+
+      <p>🧪 Class 12 Chemistry</p>
+
+      <a href="${note.pdf_path}" target="_blank">
+        <button>📄 Open PDF</button>
+      </a>
+    `;
+
+
+    container.appendChild(card);
+
+  });
+
+}
+
+
+loadChemistryQuestions();
+
+</script>
+
+</body>
+</html>
