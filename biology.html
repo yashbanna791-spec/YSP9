@@ -77,7 +77,8 @@ async function loadBiologyNotes() {
       .from("notes")
       .select("*")
       .ilike("subject", "biology")
-      .order("created_at", { ascending: true });
+.eq("category", "notes")
+.order("created_at", { ascending: true });
 
 
   if (error) {
