@@ -9,7 +9,10 @@ const SUPABASE_KEY =
   "sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
 
 const supabaseClient =
-  supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
 // ===============================
@@ -33,14 +36,12 @@ function showNotes(notes) {
     return;
   }
 
-
   notes.forEach(note => {
 
     const card =
       document.createElement("div");
 
     card.className = "card";
-
 
     let icon = "📚";
 
@@ -51,7 +52,6 @@ function showNotes(notes) {
     if (subject === "chemistry") icon = "🧪";
     if (subject === "biology") icon = "🌿";
     if (subject === "english") icon = "📖";
-
 
     card.innerHTML = `
       <h3>${icon} ${note.subject}</h3>
@@ -71,7 +71,7 @@ function showNotes(notes) {
 
 
 // ===============================
-// LOAD NOTES
+// LOAD ALL NOTES
 // ===============================
 
 async function getAllNotes() {
@@ -80,11 +80,9 @@ async function getAllNotes() {
     await supabaseClient
       .from("notes")
       .select("*")
-      .eq("category", "notes")
       .order("created_at", {
         ascending: false
       });
-
 
   if (error) {
 
@@ -100,16 +98,14 @@ async function getAllNotes() {
 
       container.innerHTML =
         `<p style="text-align:center;">
-        ❌ Notes load nahi hue.<br>
-        ${error.message}
+          ❌ Notes load nahi hue.<br>
+          ${error.message}
         </p>`;
 
     }
 
     return [];
-
   }
-
 
   return data || [];
 
@@ -127,36 +123,23 @@ async function setupHomePage() {
 
   if (!container) return;
 
-
   const notes =
     await getAllNotes();
-
-
-  // TOTAL NOTES
 
   const total =
     document.getElementById("totalNotes");
 
   if (total) {
-
     total.innerText =
       notes.length;
-
   }
-
-
-  // LATEST 5
 
   showNotes(
     notes.slice(0, 5)
   );
 
-
-  // SEARCH
-
   const searchBox =
     document.getElementById("searchBox");
-
 
   if (searchBox) {
 
@@ -164,12 +147,10 @@ async function setupHomePage() {
       "input",
       function () {
 
-
         const value =
           this.value
             .trim()
             .toLowerCase();
-
 
         if (!value) {
 
@@ -178,23 +159,18 @@ async function setupHomePage() {
           );
 
           return;
-
         }
-
 
         const results =
           notes.filter(note => {
-
 
             const subject =
               String(note.subject)
                 .toLowerCase();
 
-
             const chapter =
               String(note.chapter)
                 .toLowerCase();
-
 
             return (
               subject.includes(value) ||
@@ -203,10 +179,7 @@ async function setupHomePage() {
 
           });
 
-
-        showNotes(
-          results
-        );
+        showNotes(results);
 
       }
     );
@@ -220,7 +193,7 @@ async function setupHomePage() {
 // CONTACT FORM
 // ===============================
 
-async function setupContactForm() {
+function setupContactForm() {
 
   const form =
     document.getElementById(
@@ -229,53 +202,41 @@ async function setupContactForm() {
 
   if (!form) return;
 
-
-  const status =
-    document.getElementById(
-      "contactStatus"
-    );
-
-
   form.addEventListener(
     "submit",
     async function (event) {
 
-
       event.preventDefault();
 
-
       const name =
-        document
-          .getElementById("name")
-          .value
-          .trim();
-
+        document.getElementById(
+          "name"
+        ).value.trim();
 
       const email =
-        document
-          .getElementById("email")
-          .value
-          .trim();
-
+        document.getElementById(
+          "email"
+        ).value.trim();
 
       const message =
-        document
-          .getElementById("message")
-          .value
-          .trim();
+        document.getElementById(
+          "message"
+        ).value.trim();
+
+      const status =
+        document.getElementById(
+          "contactStatus"
+        );
 
 
-      if (
-        !name ||
-        !email ||
-        !message
-      ) {
+      if (!name ||
+          !email ||
+          !message) {
 
         status.innerText =
-          "⚠️ Please sabhi fields bharo.";
+          "⚠️ Please sabhi details bharo.";
 
         return;
-
       }
 
 
@@ -286,17 +247,17 @@ async function setupContactForm() {
       const {
         error
       } =
-        await supabaseClient
-          .from("contact_messages")
-          .insert({
+      await supabaseClient
+        .from("contact_messages")
+        .insert({
 
-            name: name,
+          name: name,
 
-            email: email,
+          email: email,
 
-            message: message
+          message: message
 
-          });
+        });
 
 
       if (error) {
@@ -306,12 +267,11 @@ async function setupContactForm() {
           error
         );
 
-
         status.innerText =
-          "❌ Message send nahi hua. Please dobara try karo.";
+          "❌ Message send nahi hua: " +
+          error.message;
 
         return;
-
       }
 
 
