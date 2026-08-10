@@ -487,6 +487,101 @@ container.appendChild(card);
 
 async function deletePDF(id, publicUrl) {
 
+  const confirmDelete = confirm(
+    "⚠️ Kya tum ye PDF permanently delete karna chahte ho?"
+  );
+
+  if (!confirmDelete) {
+    return;
+  }
+
+  const status = document.getElementById("status");
+
+  status.innerText = "⏳ PDF delete ho rahi hai...";
+
+
+  // ===============================
+  // FILE PATH FIND
+  // ===============================
+
+  const marker = "/storage/v1/object/public/pdfs/";
+
+  const position = publicUrl.indexOf(marker);
+
+  if (position === -1) {
+
+    status.innerText =
+      "❌ PDF path identify nahi ho paaya.";
+
+    return;
+  }
+
+
+  const filePath = decodeURIComponent(
+    publicUrl.substring(
+      position + marker.length
+    )
+  );
+
+
+  // ===============================
+  // DELETE FROM STORAGE
+  // ===============================
+
+  const { error: storageError } =
+    await adminSupabase
+      .storage
+      .from("pdfs")
+      .remove([filePath]);
+
+
+  if (storageError) {
+
+    console.error(storageError);
+
+    status.innerText =
+      "❌ Storage delete failed: " +
+      storageError.message;
+
+    return;
+  }
+
+
+  // ===============================
+  // DELETE DATABASE RECORD
+  // ===============================
+
+  const { error: databaseError } =
+    await adminSupabase
+      .from("notes")
+      .delete()
+      .eq("id", Number(id));
+
+
+  if (databaseError) {
+
+    console.error(databaseError);
+
+    status.innerText =
+      "⚠️ PDF Storage se delete ho gayi, lekin database record delete nahi hua: " +
+      databaseError.message;
+
+    return;
+  }
+
+
+  // ===============================
+  // SUCCESS
+  // ===============================
+
+  status.innerText =
+    "✅ PDF successfully delete ho gayi!";
+
+
+  // Refresh list
+  loadUploadedFiles();
+
+}
 
 const confirmDelete =
 confirm(
