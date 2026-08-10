@@ -110,7 +110,23 @@ accept="application/pdf,.pdf"
 <p id="status"></p>
 
 </section>
+<!-- =============================== -->
+<!-- CONTACT MESSAGES -->
+<!-- =============================== -->
 
+<section class="subjects">
+
+<h2>📩 Contact Messages</h2>
+
+<div id="contactMessages">
+
+<p style="text-align:center;">
+⏳ Messages load ho rahe hain...
+</p>
+
+</div>
+
+</section>
 
 
 <!-- =============================== -->
@@ -793,10 +809,141 @@ loadUploadedFiles();
 // ===============================
 // START
 // ===============================
+// ===============================
+// LOAD CONTACT MESSAGES
+// ===============================
 
+async function loadContactMessages() {
+
+  const container =
+    document.getElementById("contactMessages");
+
+  if (!container) return;
+
+  const {
+    data,
+    error
+  } = await adminSupabase
+    .from("contact_messages")
+    .select("*")
+    .order("created_at", {
+      ascending: false
+    });
+
+
+  if (error) {
+
+    console.error(error);
+
+    container.innerHTML =
+      "<p style='text-align:center;'>❌ Messages load nahi hue.</p>";
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    container.innerHTML =
+      "<p style='text-align:center;'>📭 Abhi koi message nahi hai.</p>";
+
+    return;
+  }
+
+
+  container.innerHTML = "";
+
+
+  data.forEach(message => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+
+    card.innerHTML = `
+
+      <h3>📩 ${message.name}</h3>
+
+      <p>
+        📧 <b>Email:</b> ${message.email}
+      </p>
+
+      <p>
+        💬 <b>Message:</b><br>
+        ${message.message}
+      </p>
+
+      <p>
+        🕒 ${new Date(message.created_at).toLocaleString()}
+      </p>
+
+      <button
+        onclick="deleteContactMessage('${message.id}')">
+
+        🗑️ Delete Message
+
+      </button>
+
+    `;
+
+
+    container.appendChild(card);
+
+  });
+
+}
+
+
+
+// ===============================
+// DELETE CONTACT MESSAGE
+// ===============================
+
+async function deleteContactMessage(id) {
+
+  const confirmDelete =
+    confirm(
+      "⚠️ Kya tum ye message permanently delete karna chahte ho?"
+    );
+
+
+  if (!confirmDelete) return;
+
+
+  const {
+    error
+  } = await adminSupabase
+    .from("contact_messages")
+    .delete()
+    .eq("id", id);
+
+
+  if (error) {
+
+    console.error(error);
+
+    alert(
+      "❌ Message delete nahi hua: " +
+      error.message
+    );
+
+    return;
+  }
+
+
+  alert(
+    "✅ Message delete ho gaya!"
+  );
+
+
+  loadContactMessages();
+
+  }
 loadUploadedFiles();
 
-
+loadContactMessages();
 </script>
 
 
