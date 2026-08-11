@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Physics Important Questions - YSP9</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</head>
+
+<body>
+
+<header class="header">
+
+<div class="logo">
+📘 YSP9
+<span class="tagline">Learn • Share • Succeed</span>
+</div>
+
+<nav>
+<a href="index.html">Home</a>
+<a href="notes.html">Notes</a>
+<a href="about.html">About</a>
+<a href="contact.html">Contact</a>
+</nav>
+
+</header>
+
+
+<section class="hero">
+
+<h1>📘 Physics Important Questions</h1>
+
+<p>RBSE Class 12 — Chapter-wise Important Questions</p>
+
+</section>
+
+
+<section class="subjects" id="physicsQuestions">
+
+<p style="text-align:center;">
+⏳ Important Questions load ho rahe hain...
+</p>
+
+</section>
+
+
+<footer>
+
+© 2026 YSP9 | Learn Today • Score Tomorrow
+
+</footer>
+
+
+<script>
+
+const SUPABASE_URL =
+"https://cwelkiqvnvyjgtryztgv.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable__wxc6yDeapVr77Mz8tE_DA_4Z0dSpEa";
+
+const physicsSupabase =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+async function loadPhysicsQuestions() {
+
+  const container =
+    document.getElementById(
+      "physicsQuestions"
+    );
+
+
+  const { data, error } =
+    await physicsSupabase
+      .from("notes")
+      .select("*")
+      .ilike("subject", "Physics")
+      .eq("category", "important")
+      .order("created_at", {
+        ascending: false
+      });
+
+
+  if (error) {
+
+    console.error(error);
+
+    container.innerHTML =
+      "<p style='text-align:center;'>❌ Questions load nahi ho paaye.</p>";
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    container.innerHTML =
+      "<p style='text-align:center;'>📚 Physics Important Questions abhi available nahi hain.</p>";
+
+    return;
+  }
+
+
+  container.innerHTML = "";
+
+
+  data.forEach(note => {
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+
+    card.innerHTML = `
+      <h2>⭐ ${note.chapter}</h2>
+
+      <p>📘 Class 12 Physics</p>
+
+      <a href="${note.pdf_path}" target="_blank">
+        <button>📄 Open PDF</button>
+      </a>
+    `;
+
+
+    container.appendChild(card);
+
+  });
+
+}
+
+
+loadPhysicsQuestions();
+
+</script>
+
+</body>
+
+</html>
