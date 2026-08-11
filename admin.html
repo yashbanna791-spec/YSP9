@@ -17,31 +17,36 @@ href="style.css">
 
 </head>
 
-
 <body>
 
+
+<!-- =============================== -->
 <!-- ADMIN LOGIN -->
+<!-- =============================== -->
+
 <div id="loginBox" class="hero">
 
-<h2>🔐 YSP9 Admin Login</h2>
+<h1>🔐 YSP9 Admin Login</h1>
+
+<p>Admin Panel access ke liye login karo</p>
 
 <input
-  type="email"
-  id="loginEmail"
-  placeholder="Admin Email"
+type="email"
+id="loginEmail"
+placeholder="Admin Email"
 >
 
 <br><br>
 
 <input
-  type="password"
-  id="loginPassword"
-  placeholder="Password"
+type="password"
+id="loginPassword"
+placeholder="Password"
 >
 
 <br><br>
 
-<button onclick="adminLogin()">
+<button id="loginBtn">
 🔐 Login
 </button>
 
@@ -50,8 +55,14 @@ href="style.css">
 </div>
 
 
+<!-- =============================== -->
 <!-- ADMIN DASHBOARD -->
-<div id="adminDashboard" style="display:none;">
+<!-- =============================== -->
+
+<div id="adminDashboard"
+style="display:none;">
+
+
 <header class="header">
 
 <div class="logo">
@@ -68,11 +79,18 @@ href="style.css">
 
 <a href="contact.html">Contact</a>
 
+<button id="logoutBtn">
+🚪 Logout
+</button>
+
 </nav>
 
 </header>
 
 
+<!-- =============================== -->
+<!-- UPLOAD PDF -->
+<!-- =============================== -->
 
 <section class="hero">
 
@@ -80,8 +98,6 @@ href="style.css">
 
 <p>Upload and Manage Notes</p>
 
-
-<!-- SUBJECT -->
 
 <input
 type="text"
@@ -91,8 +107,6 @@ placeholder="Subject (Physics, Chemistry, Biology...)"
 
 <br><br>
 
-
-<!-- CATEGORY -->
 
 <select id="category">
 
@@ -109,8 +123,6 @@ placeholder="Subject (Physics, Chemistry, Biology...)"
 <br><br>
 
 
-<!-- CHAPTER -->
-
 <input
 type="text"
 id="chapter"
@@ -119,8 +131,6 @@ placeholder="Chapter Name"
 
 <br><br>
 
-
-<!-- PDF -->
 
 <input
 type="file"
@@ -131,8 +141,6 @@ accept="application/pdf,.pdf"
 <br><br>
 
 
-<!-- UPLOAD -->
-
 <button id="uploadBtn">
 📤 Upload PDF
 </button>
@@ -141,6 +149,8 @@ accept="application/pdf,.pdf"
 <p id="status"></p>
 
 </section>
+
+
 <!-- =============================== -->
 <!-- CONTACT MESSAGES -->
 <!-- =============================== -->
@@ -168,7 +178,6 @@ accept="application/pdf,.pdf"
 
 <h2>🗂️ Manage Uploaded PDFs</h2>
 
-
 <div id="uploadedFiles">
 
 <p style="text-align:center;">
@@ -180,13 +189,13 @@ accept="application/pdf,.pdf"
 </section>
 
 
-
 <footer>
 
 © 2026 YSP9 Admin
 
 </footer>
 
+</div>
 
 
 <script>
@@ -211,6 +220,168 @@ SUPABASE_KEY
 );
 
 
+// ===============================
+// ELEMENTS
+// ===============================
+
+const loginBox =
+document.getElementById("loginBox");
+
+const adminDashboard =
+document.getElementById("adminDashboard");
+
+const loginStatus =
+document.getElementById("loginStatus");
+
+
+// ===============================
+// LOGIN
+// ===============================
+
+document
+.getElementById("loginBtn")
+.addEventListener(
+"click",
+adminLogin
+);
+
+
+async function adminLogin() {
+
+const email =
+document
+.getElementById("loginEmail")
+.value
+.trim();
+
+const password =
+document
+.getElementById("loginPassword")
+.value;
+
+
+if (!email || !password) {
+
+loginStatus.innerText =
+"⚠️ Email aur password dono bharo.";
+
+return;
+
+}
+
+
+loginStatus.innerText =
+"⏳ Login ho raha hai...";
+
+
+const {
+data,
+error
+} =
+await adminSupabase.auth.signInWithPassword({
+
+email: email,
+
+password: password
+
+});
+
+
+if (error) {
+
+console.error(error);
+
+loginStatus.innerText =
+"❌ Login failed: " +
+error.message;
+
+return;
+
+}
+
+
+if (data.session) {
+
+loginStatus.innerText =
+"✅ Login successful!";
+
+showDashboard();
+
+}
+
+}
+
+
+// ===============================
+// SHOW DASHBOARD
+// ===============================
+
+function showDashboard() {
+
+loginBox.style.display =
+"none";
+
+adminDashboard.style.display =
+"block";
+
+loadUploadedFiles();
+
+loadContactMessages();
+
+}
+
+
+// ===============================
+// LOGOUT
+// ===============================
+
+document
+.getElementById("logoutBtn")
+.addEventListener(
+"click",
+async function () {
+
+await adminSupabase.auth.signOut();
+
+adminDashboard.style.display =
+"none";
+
+loginBox.style.display =
+"block";
+
+document
+.getElementById("loginPassword")
+.value = "";
+
+loginStatus.innerText =
+"";
+
+});
+
+
+// ===============================
+// CHECK EXISTING SESSION
+// ===============================
+
+async function checkSession() {
+
+const {
+data
+} =
+await adminSupabase.auth.getSession();
+
+
+if (data.session) {
+
+showDashboard();
+
+}
+
+}
+
+
+checkSession();
+
 
 // ===============================
 // UPLOAD PDF
@@ -226,10 +397,8 @@ async function () {
 const button =
 document.getElementById("uploadBtn");
 
-
 const status =
 document.getElementById("status");
-
 
 const subject =
 document
@@ -237,12 +406,10 @@ document
 .value
 .trim();
 
-
 const category =
 document
 .getElementById("category")
 .value;
-
 
 const chapter =
 document
@@ -250,15 +417,11 @@ document
 .value
 .trim();
 
-
 const file =
 document
 .getElementById("pdfFile")
 .files[0];
 
-
-
-// CHECK INPUTS
 
 if (
 !subject ||
@@ -275,9 +438,6 @@ return;
 }
 
 
-
-// CHECK PDF
-
 if (
 file.type !== "application/pdf"
 ) {
@@ -290,17 +450,11 @@ return;
 }
 
 
-
-// BUTTON DISABLE
-
 button.disabled = true;
 
 status.innerText =
 "⏳ PDF upload ho rahi hai...";
 
-
-
-// SAFE NAMES
 
 const safeSubject =
 subject
@@ -309,11 +463,6 @@ subject
 /[^a-z0-9]+/g,
 "-"
 );
-
-
-const safeCategory =
-category
-.toLowerCase();
 
 
 const safeChapter =
@@ -335,7 +484,7 @@ file.name.replace(
 
 
 const filePath =
-safeCategory +
+category +
 "/" +
 safeSubject +
 "/" +
@@ -344,10 +493,7 @@ safeChapter +
 fileName;
 
 
-
-// ===============================
-// STORAGE UPLOAD
-// ===============================
+// STORAGE
 
 const {
 error: uploadError
@@ -368,29 +514,22 @@ false
 );
 
 
-
 if (uploadError) {
 
-console.error(
-uploadError
-);
+console.error(uploadError);
 
 status.innerText =
 "❌ Upload failed: " +
 uploadError.message;
 
-button.disabled =
-false;
+button.disabled = false;
 
 return;
 
 }
 
 
-
-// ===============================
 // PUBLIC URL
-// ===============================
 
 const {
 data: urlData
@@ -407,10 +546,7 @@ const publicUrl =
 urlData.publicUrl;
 
 
-
-// ===============================
-// DATABASE INSERT
-// ===============================
+// DATABASE
 
 const {
 error: databaseError
@@ -434,29 +570,22 @@ publicUrl
 });
 
 
-
 if (databaseError) {
 
-console.error(
-databaseError
-);
+console.error(databaseError);
 
 status.innerText =
 "⚠️ PDF upload ho gayi, lekin database me save nahi hui: " +
 databaseError.message;
 
-button.disabled =
-false;
+button.disabled = false;
 
 return;
 
 }
 
 
-
-// ===============================
 // SUCCESS
-// ===============================
 
 status.innerHTML =
 
@@ -486,52 +615,35 @@ publicUrl +
 "</a>";
 
 
-
-// CLEAR INPUTS
-
 document
 .getElementById("subject")
 .value = "";
-
 
 document
 .getElementById("chapter")
 .value = "";
 
-
 document
 .getElementById("pdfFile")
 .value = "";
 
-
-
-// ENABLE BUTTON
-
-button.disabled =
-false;
-
-
-
-// REFRESH LIST
+button.disabled = false;
 
 loadUploadedFiles();
 
 });
 
 
-
 // ===============================
-// LOAD UPLOADED PDFs
+// LOAD PDFs
 // ===============================
 
 async function loadUploadedFiles() {
-
 
 const container =
 document.getElementById(
 "uploadedFiles"
 );
-
 
 
 const {
@@ -544,87 +656,56 @@ await adminSupabase
 .order(
 "created_at",
 {
-ascending:
-false
+ascending: false
 }
 );
-
 
 
 if (error) {
 
-console.error(
-error
-);
+console.error(error);
 
 container.innerHTML =
-
-"<p style='text-align:center;'>" +
-
-"❌ Files load nahi hui." +
-
-"</p>";
+"<p style='text-align:center;'>❌ Files load nahi hui.</p>";
 
 return;
 
 }
 
 
-
-if (
-!data ||
-data.length === 0
-) {
+if (!data || data.length === 0) {
 
 container.innerHTML =
-
-"<p style='text-align:center;'>" +
-
-"📚 Abhi koi PDF upload nahi hai." +
-
-"</p>";
+"<p style='text-align:center;'>📚 Abhi koi PDF upload nahi hai.</p>";
 
 return;
 
 }
-
 
 
 container.innerHTML = "";
 
 
-
-data.forEach(
-note => {
-
+data.forEach(note => {
 
 const card =
-document.createElement(
-"div"
-);
-
+document.createElement("div");
 
 card.className =
 "card";
 
 
-
-let icon =
-"📚";
-
+let icon = "📚";
 
 if (
 String(note.category)
-.toLowerCase()
-===
+.toLowerCase() ===
 "important"
 ) {
 
-icon =
-"⭐";
+icon = "⭐";
 
 }
-
 
 
 card.innerHTML = `
@@ -666,15 +747,11 @@ onclick="deletePDF(
 `;
 
 
-
-container.appendChild(
-card
-);
+container.appendChild(card);
 
 });
 
 }
-
 
 
 // ===============================
@@ -693,13 +770,7 @@ confirm(
 );
 
 
-
-if (!confirmDelete) {
-
-return;
-
-}
-
+if (!confirmDelete) return;
 
 
 const status =
@@ -712,25 +783,15 @@ status.innerText =
 "⏳ PDF delete ho rahi hai...";
 
 
-
-// ===============================
-// FIND FILE PATH
-// ===============================
-
 const marker =
 "/storage/v1/object/public/pdfs/";
 
 
 const position =
-publicUrl.indexOf(
-marker
-);
+publicUrl.indexOf(marker);
 
 
-
-if (
-position === -1
-) {
+if (position === -1) {
 
 status.innerText =
 "❌ PDF path identify nahi ho paaya.";
@@ -740,24 +801,17 @@ return;
 }
 
 
-
 const filePath =
 decodeURIComponent(
 
 publicUrl.substring(
-
-position +
-marker.length
-
+position + marker.length
 )
 
 );
 
 
-
-// ===============================
-// DELETE STORAGE FILE
-// ===============================
+// STORAGE DELETE
 
 const {
 error: storageError
@@ -770,12 +824,9 @@ filePath
 ]);
 
 
-
 if (storageError) {
 
-console.error(
-storageError
-);
+console.error(storageError);
 
 status.innerText =
 "❌ Storage delete failed: " +
@@ -786,10 +837,7 @@ return;
 }
 
 
-
-// ===============================
-// DELETE DATABASE ROW
-// ===============================
+// DATABASE DELETE
 
 const {
 error: databaseError
@@ -803,129 +851,130 @@ Number(id)
 );
 
 
-
 if (databaseError) {
 
-console.error(
-databaseError
-);
+console.error(databaseError);
 
 status.innerText =
-"⚠️ PDF Storage se delete ho gayi, lekin database record delete nahi hua: " +
-databaseError.message;
+"⚠️ Storage se delete ho gayi, lekin database record delete nahi hua.";
 
 return;
 
 }
 
 
-
-// ===============================
-// SUCCESS
-// ===============================
-
 status.innerText =
 "✅ PDF successfully delete ho gayi!";
-
-
-
-// REFRESH
 
 loadUploadedFiles();
 
 }
 
 
-
 // ===============================
-// START
-// ===============================
-// ===============================
-// LOAD CONTACT MESSAGES
+// CONTACT MESSAGES
 // ===============================
 
 async function loadContactMessages() {
 
-  const container =
-    document.getElementById("contactMessages");
-
-  if (!container) return;
-
-  const {
-    data,
-    error
-  } = await adminSupabase
-    .from("contact_messages")
-    .select("*")
-    .order("created_at", {
-      ascending: false
-    });
+const container =
+document.getElementById(
+"contactMessages"
+);
 
 
-  if (error) {
-
-    console.error(error);
-
-    container.innerHTML =
-      "<p style='text-align:center;'>❌ Messages load nahi hue.</p>";
-
-    return;
-  }
+if (!container) return;
 
 
-  if (!data || data.length === 0) {
-
-    container.innerHTML =
-      "<p style='text-align:center;'>📭 Abhi koi message nahi hai.</p>";
-
-    return;
-  }
-
-
-  container.innerHTML = "";
-
-
-  data.forEach(message => {
-
-    const card =
-      document.createElement("div");
-
-    card.className = "card";
+const {
+data,
+error
+} =
+await adminSupabase
+.from("contact_messages")
+.select("*")
+.order(
+"created_at",
+{
+ascending: false
+}
+);
 
 
-    card.innerHTML = `
+if (error) {
 
-      <h3>📩 ${message.name}</h3>
+console.error(error);
 
-      <p>
-        📧 <b>Email:</b> ${message.email}
-      </p>
+container.innerHTML =
+"<p style='text-align:center;'>❌ Messages load nahi hue.</p>";
 
-      <p>
-        💬 <b>Message:</b><br>
-        ${message.message}
-      </p>
-
-      <p>
-        🕒 ${new Date(message.created_at).toLocaleString()}
-      </p>
-
-      <button
-        onclick="deleteContactMessage('${message.id}')">
-
-        🗑️ Delete Message
-
-      </button>
-
-    `;
-
-
-    container.appendChild(card);
-
-  });
+return;
 
 }
 
+
+if (!data || data.length === 0) {
+
+container.innerHTML =
+"<p style='text-align:center;'>📭 Abhi koi message nahi hai.</p>";
+
+return;
+
+}
+
+
+container.innerHTML = "";
+
+
+data.forEach(message => {
+
+const card =
+document.createElement("div");
+
+card.className =
+"card";
+
+
+card.innerHTML = `
+
+<h3>
+📩 ${message.name}
+</h3>
+
+<p>
+📧 <b>Email:</b>
+${message.email}
+</p>
+
+<p>
+💬 <b>Message:</b><br>
+${message.message}
+</p>
+
+<p>
+🕒
+${new Date(
+message.created_at
+).toLocaleString()}
+</p>
+
+<button
+onclick="deleteContactMessage(
+'${message.id}'
+)">
+
+🗑️ Delete Message
+
+</button>
+
+`;
+
+
+container.appendChild(card);
+
+});
+
+}
 
 
 // ===============================
@@ -934,50 +983,53 @@ async function loadContactMessages() {
 
 async function deleteContactMessage(id) {
 
-  const confirmDelete =
-    confirm(
-      "⚠️ Kya tum ye message permanently delete karna chahte ho?"
-    );
+const confirmDelete =
+confirm(
+"⚠️ Kya tum ye message permanently delete karna chahte ho?"
+);
 
 
-  if (!confirmDelete) return;
+if (!confirmDelete) return;
 
 
-  const {
-    error
-  } = await adminSupabase
-    .from("contact_messages")
-    .delete()
-    .eq("id", id);
+const {
+error
+} =
+await adminSupabase
+.from("contact_messages")
+.delete()
+.eq(
+"id",
+id
+);
 
 
-  if (error) {
+if (error) {
 
-    console.error(error);
+console.error(error);
 
-    alert(
-      "❌ Message delete nahi hua: " +
-      error.message
-    );
+alert(
+"❌ Message delete nahi hua: " +
+error.message
+);
 
-    return;
-  }
+return;
 
-
-  alert(
-    "✅ Message delete ho gaya!"
-  );
+}
 
 
-  loadContactMessages();
+alert(
+"✅ Message delete ho gaya!"
+);
 
-  }
-loadUploadedFiles();
 
 loadContactMessages();
-</script>
 
+}
+
+
+</script>
 
 </body>
 
-</html>
+  </html>
